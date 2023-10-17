@@ -3,6 +3,8 @@ import { Chess } from "chess.js";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useRoute } from "wouter";
 import useHashLocation from "../hooks/useHashLocation";
+
+import PropTypes from "prop-types";
 import white from "../assets/white.png";
 import black from "../assets/black.png";
 
@@ -14,19 +16,20 @@ import {
 	Col,
 	Row,
 	List,
-	// Space,
+	Space,
 	Button,
 	Typography,
-	// theme,
+	theme,
 } from "antd";
 
 import {
 	DeleteOutlined,
-	ArrowUpOutlined,
+	// ArrowUpOutlined,
 	// ArrowDownOutlined,
 	ShareAltOutlined,
 	EyeOutlined,
 } from "@ant-design/icons";
+import { useAuthContext } from "../hooks/useAuthContext";
 
 const boardWrapper = {
 	width: "83vw",
@@ -36,7 +39,7 @@ const boardWrapper = {
 
 // const { useBreakpoint } = Grid;
 
-function SingleGame() {
+const SingleGame = ({ mongoSavedGames, handleMongoSavesChange }) => {
 	// const screens = useBreakpoint();
 
 	const game = useMemo(() => new Chess(), []); // <- 1
@@ -47,13 +50,13 @@ function SingleGame() {
 	const [showPromotionDialog, setShowPromotionDialog] = useState(false);
 	const [moveSquares, setMoveSquares] = useState({});
 	const [optionSquares, setOptionSquares] = useState({});
-
+	const { user } = useAuthContext();
 	const [, params] = useRoute("/single/:gameId");
 
 	const [, hashNavigate] = useHashLocation();
 	const [localSavedGames, setLocalSavedGames] = useState([]);
 	// const [cloudSavedGames, setCloudSavedGames] = useState([]);
-	// const { token } = theme.useToken();
+	const { token } = theme.useToken();
 
 	useEffect(() => {
 		setLocalSavedGames(Object.keys(localStorage));
@@ -63,9 +66,99 @@ function SingleGame() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
+	useEffect(() => {
+		// const mongoSave = mongoSavedGames.find(save=> save.gameId === params.gameId)
+		if (mongoSavedGames.find((save) => save.gameId === params.gameId)) {
+			loadMongoGame(params.gameId);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
 	const loadLocalGame = (key) => {
 		game.load(localStorage.getItem(key));
 		setFen(game.fen());
+	};
+
+	const loadMongoGame = (key) => {
+		const mongoSave = mongoSavedGames.find((save) => save.gameId === key);
+		game.load(mongoSave.fen);
+		setFen(game.fen());
+	};
+
+	const fetchSaveMongo = async () => {
+		try {
+			const response = await fetch(
+				`http://localhost:3000/api/savegame/${params.gameId}`,
+				{
+					withCredentials: true,
+					credentials: "include",
+					method: "POST",
+					headers: {
+						"Content-type": "application/json",
+					},
+					body: JSON.stringify({
+						gameId: params.gameId,
+						fen,
+					}),
+				}
+			);
+			const data = await response.json();
+			// console.log(response);
+			if (response.ok) {
+				console.log("game saved mongo");
+				console.log(data.data);
+				handleMongoSavesChange(data.data);
+				// setIsLoading(false);
+				// console.log("set user in context here");
+				// console.log(data);
+				// return true;
+				// return hashNavigate("/");
+			} else {
+				// messageApi.info("Error:", data.error);
+				console.log("Error:", data.error);
+				// return false;
+			}
+		} catch (error) {
+			console.log("Error:", error);
+		}
+	};
+
+	const fetchDeleteMongo = async (gameId) => {
+		try {
+			const response = await fetch(
+				`http://localhost:3000/api/savegame/${gameId}`,
+				{
+					withCredentials: true,
+					credentials: "include",
+					method: "DELETE",
+					headers: {
+						"Content-type": "application/json",
+					},
+					// body: JSON.stringify({
+					// 	gameId: params.gameId,
+					// 	fen,
+					// }),
+				}
+			);
+			const data = await response.json();
+			// console.log(response);
+			if (response.ok) {
+				console.log("game deleted mongo");
+				// console.log(data.data);
+				handleMongoSavesChange(data.data);
+				// setIsLoading(false);
+				// console.log("set user in context here");
+				// console.log(data);
+				// return true;
+				// return hashNavigate("/");
+			} else {
+				// messageApi.info("Error:", data.error);
+				console.log("Error:", data.error);
+				// return false;
+			}
+		} catch (error) {
+			console.log("Error:", error);
+		}
 	};
 
 	const makeAMove = useCallback(
@@ -89,7 +182,9 @@ function SingleGame() {
 						);
 					} else if (game.isDraw()) {
 						setOver("Draw");
-					} else {
+					} else if (game.isStalemate()) {
+						setOver("Stalemate");
+					}else {
 						setOver("Game over");
 					}
 				}
@@ -233,13 +328,11 @@ function SingleGame() {
 						>
 							<Card bordered={false}>
 								<Statistic
-									title="Game Status [Single]"
+									title="Game [Single]"
 									value={
 										over
 											? over
-											: game.inCheck()
-											? "Check"
-											: "Active"
+											: "---"
 									}
 									precision={2}
 									valueStyle={{ color: "#3f8600" }}
@@ -259,9 +352,9 @@ function SingleGame() {
 							<Card bordered={false}>
 								<Statistic
 									title="Status"
-									value={"Active"}
+									value={game.inCheck()? "Check" : "Active"}
 									valueStyle={{ color: "#3f8600" }}
-									prefix={<ArrowUpOutlined />}
+									// prefix={<ArrowUpOutlined />}
 								/>
 							</Card>
 						</Col>
@@ -281,8 +374,14 @@ function SingleGame() {
 									value={
 										game.turn() === "w" ? "White" : "Black"
 									}
-									valueStyle={{ color: "#cf1322" }}
-									prefix={game.turn() === "w" ? white : black}
+									valueStyle={{ color: token.colorPrimaryText }}
+									prefix={
+										game.turn() === "w" ? (
+											<img src={white} height={24} />
+										) : (
+											<img src={black} height={24} />
+										)
+									}
 								/>
 							</Card>
 						</Col>
@@ -323,78 +422,73 @@ function SingleGame() {
 							type="flex"
 							align="middle"
 						>
-							{/* <Space wrap> */}
-							<Row justify="space-around" wrap>
-								<Col type="flex" align="middle">
+							<Space.Compact>
+								{/* <Row justify="space-around" wrap>
+								<Col type="flex" align="middle"> */}
+								<Button
+									// size="large"
+									// size="small"
+									// type="primary"
+									onClick={() => {
+										hashNavigate("/");
+									}}
+								>
+									Home
+								</Button>
+								{/* </Col>
+								<Col type="flex" align="middle"> */}
+								<Button
+									// size="large"
+									// size="small"
+									// type="primary"
+									onClick={() => {
+										game.reset();
+										setFen(game.fen());
+										setMoveSquares({});
+										setOptionSquares({});
+									}}
+								>
+									Reset
+								</Button>
+								{/* </Col>
+								<Col type="flex" align="middle"> */}
+								<Button
+									// size="large"
+									// size="small"
+									type="primary"
+									onClick={() => {
+										localStorage.setItem(
+											params.gameId,
+											game.fen()
+										);
+										console.log(
+											"saved game to localStorage"
+										);
+										setLocalSavedGames(
+											Object.keys(localStorage)
+										);
+									}}
+								>
+									localSave
+								</Button>
+								{/* </Col>
+								<Col type="flex" align="middle"> */}
+								{user && (
 									<Button
 										// size="large"
-										size="small"
-										// type="primary"
-										onClick={() => {
-											hashNavigate("/");
-										}}
-									>
-										Home
-									</Button>
-								</Col>
-								<Col type="flex" align="middle">
-									<Button
-										// size="large"
-										size="small"
-										// type="primary"
-										onClick={() => {
-											game.reset();
-											setFen(game.fen());
-											setMoveSquares({});
-											setOptionSquares({});
-										}}
-									>
-										Reset
-									</Button>
-								</Col>
-								<Col type="flex" align="middle">
-									<Button
-										// size="large"
-										size="small"
+										// size="small"
 										type="primary"
 										onClick={() => {
-											localStorage.setItem(
-												params.gameId,
-												game.fen()
-											);
-											console.log(
-												"saved game to localStorage"
-											);
-											setLocalSavedGames(
-												Object.keys(localStorage)
-											);
+											fetchSaveMongo();
 										}}
 									>
-										Save (Local)
+										mongoSave
 									</Button>
-								</Col>
-								<Col type="flex" align="middle">
-									<Button
-										// size="large"
-										size="small"
-										type="primary"
-										onClick={() => {
-											localStorage.setItem(
-												params.gameId,
-												game.fen()
-											);
-											console.log(
-												"saved game to localStorage"
-											);
-											setLocalSavedGames(
-												Object.keys(localStorage)
-											);
-										}}
-									>
-										Save (mongoDB)
-									</Button>
-								</Col>
-							</Row>
+								)}
+
+								{/* </Col>
+							</Row> */}
+							</Space.Compact>
 						</Col>
 					</Row>
 				</>
@@ -541,27 +635,26 @@ function SingleGame() {
 								size: "small",
 							}}
 							bordered
-							dataSource={localSavedGames}
+							dataSource={mongoSavedGames}
 							renderItem={(item) => (
 								<List.Item>
 									<Typography.Link
 										target="_blank"
 										onClick={() => {
-											hashNavigate(`/single/${item}`);
-											loadLocalGame(item);
+											hashNavigate(
+												`/single/${item.gameId}`
+											);
+											loadMongoGame(item.gameId);
 										}}
 									>
-										{item}
+										{item.gameId}
 									</Typography.Link>
 
 									<Button
 										size="small"
-										// onClick={() => {
-										// 	localStorage.removeItem(item);
-										// 	setLocalSavedGames(
-										// 		Object.keys(localStorage)
-										// 	);
-										// }}
+										onClick={() => {
+											fetchDeleteMongo(item.gameId);
+										}}
 									>
 										<DeleteOutlined />
 									</Button>
@@ -574,6 +667,11 @@ function SingleGame() {
 			</Col>
 		</Row>
 	);
-}
+};
+
+SingleGame.propTypes = {
+	mongoSavedGames: PropTypes.array,
+	handleMongoSavesChange: PropTypes.func,
+};
 
 export default SingleGame;

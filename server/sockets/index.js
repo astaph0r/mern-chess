@@ -28,7 +28,7 @@ const socketServer = (server) => {
 				});
 				callback(rooms.get(roomId));
 			} catch (error) {
-				console.log(error.message);
+				console.log(error);
 			}
 		});
 
@@ -80,7 +80,7 @@ const socketServer = (server) => {
 				socket.to(room.roomId).emit("opponentJoined", {roomData: roomUpdate});
 				socket.to(room.viewId).emit("opponentJoined", {roomData: roomUpdate});
 			} catch (error) {
-				console.log(error.message);
+				console.log(error);
 			}
 		});
 
@@ -110,7 +110,7 @@ const socketServer = (server) => {
 
 				callback(room);
 			} catch (error) {
-				console.log(error.message);
+				console.log(error);
 			}
 		});
 
@@ -132,7 +132,7 @@ const socketServer = (server) => {
 				// 	.to(room.viewId)
 				// 	.emit("move", { move: data.move, fen: data.fen });
 			} catch (error) {
-				console.log(error.message);
+				console.log(error);
 			}
 		});
 
@@ -157,7 +157,7 @@ const socketServer = (server) => {
 				// 	.to(room.viewId)
 				// 	.emit("move", data.move);
 			} catch (error) {
-				console.log(error.message);
+				console.log(error);
 			}
 		});
 
@@ -176,7 +176,7 @@ const socketServer = (server) => {
 				socket.to(room.roomId).emit("move", {move: data.move});
 				socket.to(room.viewId).emit("move", {move: data.move});
 			} catch (error) {
-				console.log(error.message);
+				console.log(error);
 			}
 		});
 
@@ -184,7 +184,7 @@ const socketServer = (server) => {
 			try {
 				// console.log("closeRoom");
 				const room = rooms.get(data.roomId);
-				const player = room.players.find(
+								const player = room.players.find(
 					(player) => player.id === socket.id
 				);
 				// console.log(room.roomId)
@@ -210,7 +210,7 @@ const socketServer = (server) => {
 
 				rooms.delete(room.roomId);
 			} catch (error) {
-				console.log(error.message);
+				console.log(error);
 			}
 		});
 
@@ -256,7 +256,7 @@ const socketServer = (server) => {
 					}
 				});
 			} catch (error) {
-				console.log(error.message);
+				console.log(error);
 			}
 		});
 	});

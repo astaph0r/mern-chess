@@ -5,16 +5,58 @@ import BaseLayout from "./components/BaseLayout";
 import { Router, Route } from "wouter";
 import useHashLocation from "./hooks/useHashLocation";
 import { ConfigProvider, theme } from "antd";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import SingleGame from "./components/SingleGame";
 import Login from "./components/Login";
 import Register from "./components/Register";
+import { useAuthContext } from "./hooks/useAuthContext";
 
 function App() {
 	const [firstPlayer, setFirstPlayer] = useState(false);
 	const [room, setRoom] = useState("");
 	const [orientation, setOrientation] = useState("");
 	const [players, setPlayers] = useState([]);
+	const { user } = useAuthContext();
+	const [mongoSavedGames, setMongoSavedGames] = useState([]);
+
+	useEffect(() => {
+		console.log("Something changed room state");
+		console.log(room);
+	}, [room]);
+
+	useEffect(() => {
+		const fetchMongoGames = async () => {
+			try {
+				if (user) {
+					const response = await fetch(
+						"http://localhost:3000/api/savedgame/all",
+						{
+							withCredentials: true,
+							credentials: "include",
+						}
+					);
+					const data = await response.json();
+					if (response.ok) {
+						if (data.data) {
+							setMongoSavedGames(data.data);
+						}
+						console.log(data.message);
+						// return hashNavigate("/");
+					} else {
+						// setIsLoading(false);
+						// setError(data.error);
+						// messageApi.info("Error:", data.error);
+						console.log("Error:", data.error);
+					}
+				} else {
+					setMongoSavedGames([]);
+				}
+			} catch (error) {
+				console.log("Error:", error);
+			}
+		};
+		fetchMongoGames();
+	}, [user]);
 
 	const handleCleanup = useCallback(() => {
 		setRoom("");
@@ -22,6 +64,9 @@ function App() {
 		setPlayers([]);
 	}, []);
 
+	const handleMongoSavesChange = (games) => {
+		setMongoSavedGames(games);
+	};
 	const handleRoomChange = (room) => {
 		setRoom(room);
 	};
@@ -90,12 +135,17 @@ function App() {
 									handleFirstPlayerChange
 								}
 								handleCleanup={handleCleanup}
+								mongoSavedGames={mongoSavedGames}
+								handleMongoSavesChange={handleMongoSavesChange}
 							/>
 						</BaseLayout>
 					</Route>
 					<Route path="/single/:gameId">
 						<BaseLayout handleThemeChange={handleThemeChange}>
-							<SingleGame />
+							<SingleGame
+								mongoSavedGames={mongoSavedGames}
+								handleMongoSavesChange={handleMongoSavesChange}
+							/>
 						</BaseLayout>
 					</Route>
 					<Route path="/game/:mode/:gameId">

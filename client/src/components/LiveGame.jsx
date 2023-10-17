@@ -60,7 +60,11 @@ function LiveGame({
 
 	const [playMatch, playParams] = useRoute("/game/play/:gameId");
 	const [viewMatch, viewParams] = useRoute("/game/view/:gameId");
-	const gameId= playMatch? playParams.gameId : viewMatch? viewParams.gameId: null;
+	const gameId = playMatch
+		? playParams.gameId
+		: viewMatch
+		? viewParams.gameId
+		: null;
 	const { user } = useAuthContext();
 
 	const [, hashNavigate] = useHashLocation();
@@ -68,17 +72,18 @@ function LiveGame({
 	// useEffect(() => {
 	// 	console.log(`room: ${room}, players ${players}, fen: ${fen}`);
 	// }, [fen, room, players]);
-	useEffect(() => {
-		console.log(`room: ${room}`);
-	}, [room]);
+	// useEffect(() => {
+	// 	console.log("Something changed room state");
+	// 	console.log(`room: ${room}`);
+	// }, [room]);
 
 	useEffect(() => {
 		// console.log(match, params);
 
 		// console.log(firstPlayer);
 		if (!firstPlayer && playMatch) {
-			console.log("check",room)
-			if (!room) {
+			console.log("check", room);
+			if (!room && !over) {
 				socket.emit(
 					"joinPlayRoom",
 					{
@@ -88,15 +93,15 @@ function LiveGame({
 					(r) => {
 						if (r.error) return console.log(r.message);
 						console.log("response:", r);
-						handleRoomChange(r?.roomId);
-						handlePlayersChange(r?.players);
+						handleRoomChange(r.roomId);
+						handlePlayersChange(r.players);
 						handleOrientationChange("black");
 					}
 				);
 			}
 		}
-		if (viewMatch) {
-			if (!room) {
+		if (viewMatch && !room && !over) {
+			// if (!room) {
 				socket.emit(
 					"joinViewRoom",
 					{
@@ -112,19 +117,19 @@ function LiveGame({
 							setFen(game.fen());
 							// makeAMove(r.lastMove)
 						}
-						handleRoomChange(r?.viewId);
-						handlePlayersChange(r?.players);
+						handleRoomChange(r.viewId);
+						handlePlayersChange(r.players);
 					}
 				);
-			}
+			// }
 		}
 		handleFirstPlayerChange(false);
 
 		// return () => {
 		// 	socket.off("new-chat-message");
 		// };
-
-	}, [firstPlayer, game, handleFirstPlayerChange, handleOrientationChange, handlePlayersChange, handleRoomChange, playMatch, room, user, viewMatch, gameId]);
+	
+	}, [firstPlayer, game, handleFirstPlayerChange, handleOrientationChange, handlePlayersChange, handleRoomChange, playMatch, room, user, viewMatch, gameId, over]);
 
 	useEffect(() => {
 		socket.on("opponentJoined", ({ roomData }) => {
@@ -134,31 +139,24 @@ function LiveGame({
 	}, [handlePlayersChange]);
 
 	useEffect(() => {
-		socket.on("playerDisconnected", ({ roomId, player }) => {
-			console.log(player);
-			console.log(roomId);
-			console.log(room);
-			if (roomId === room) {
-				setOver(`${player.username} has disconnected.`);
-				// handleCleanup();
-			}
+		socket.on("playerDisconnected", ({ player }) => {
+			console.log("playerDisconnected")
+			setOver(`${player.username} has disconnected.`);
+			handleCleanup();
 		});
-	}, [room]);
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	useEffect(() => {
-		socket.on("closeRoom", ({ roomId, player }) => {
-			console.log("closeRoom", roomId === room);
-			console.log(player);
-			console.log(roomId);
-			console.log(room);
-			if (roomId === room) {
-				setOver(
-					`${player.username ? player.username : player.id} has quit.`
-				);
-				// handleCleanup();
-			}
+		socket.on("closeRoom", ({ player }) => {
+			console.log("closeRoom")
+			setOver(
+				`${player.username ? player.username : player.id} has quit.`
+			);
+			handleCleanup();
 		});
-	}, [room]);
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	useEffect(() => {
 		if (playMatch) {

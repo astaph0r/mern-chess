@@ -182,10 +182,23 @@ router.get("/getUser", (req, res) => {
 
 router.get("/savedgame/all", async (req, res) => {
 	try {
-		const savedGames = await SavedGame.find({})
-			.limit(100)
-			.sort({ createdAt: -1 });
-		res.status(200).send({ savedGames });
+		if (req.isAuthenticated()) {
+			const savedGames = await SavedGame.find({
+				username: req.user.username,
+			})
+				.limit(100)
+				.sort({ createdAt: -1 });
+			// res.status(200).send({ savedGames });
+			if (savedGames) {
+				return res.status(StatusCodes.OK).json({ data: savedGames });
+			}
+			return res
+				.status(StatusCodes.NO_CONTENT)
+				.json({ message: "no saved games" });
+		}
+		return res
+			.status(StatusCodes.UNAUTHORIZED)
+			.json({ error: "login required for mongodb saves" });
 	} catch (error) {
 		console.log("Error:", error.message);
 		return res
@@ -196,9 +209,19 @@ router.get("/savedgame/all", async (req, res) => {
 
 router.get("/savedgame/:gameId", async (req, res) => {
 	try {
-		const savedGame = await SavedGame.find({ gameId: req.params.gameId });
+		if (req.isAuthenticated()) {
+			const savedGame = await SavedGame.findOne({
+				gameId: req.params.gameId,
+			});
 
-		res.status(200).send(savedGame);
+			return res.status(StatusCodes.OK).json({ data: savedGame });
+		}
+		return res
+			.status(StatusCodes.UNAUTHORIZED)
+			.json({ error: "login required for mongodb saves" });
+		// const savedGame = await SavedGame.find({ gameId: req.params.gameId });
+
+		// res.status(200).send(savedGame);
 	} catch (error) {
 		console.log("Error:", error.message);
 		return res
@@ -207,17 +230,61 @@ router.get("/savedgame/:gameId", async (req, res) => {
 	}
 });
 
-router.post("/savedgame/:gameId", async (req, res) => {
+router.post("/savegame/:gameId", async (req, res) => {
 	try {
-		const { gameId, fen } = req.body;
-		const newSavedGame = new SavedGame({
-			gameId,
-			fen,
-		});
+		console.log(req.user);
+		if (req.isAuthenticated()) {
+			const { gameId, fen } = req.body;
+			const username = req.user.username;
+			const newSavedGame = new SavedGame({
+				gameId,
+				fen,
+				username,
+			});
 
-		newSavedGame.save();
+			await newSavedGame.save();
 
-		res.status(200);
+			const savedGames = await SavedGame.find({
+				username: req.user.username,
+			});
+
+			return res.status(StatusCodes.CREATED).json({ data: savedGames });
+		}
+		return res
+			.status(StatusCodes.UNAUTHORIZED)
+			.json({ error: "login required for mongodb game save" });
+	} catch (error) {
+		console.log("Error:", error.message);
+		return res
+			.status(StatusCodes.INTERNAL_SERVER_ERROR)
+			.json({ error: ReasonPhrases.INTERNAL_SERVER_ERROR });
+	}
+});
+
+router.delete("/savegame/:gameId", async (req, res) => {
+	try {
+		console.log(req.user);
+		if (req.isAuthenticated()) {
+			const savedGame = await SavedGame.findOne({
+				gameId: req.params.gameId,
+			});
+
+			if (savedGame.username === req.user.username) {
+				await SavedGame.deleteOne({ gameId: req.params.gameId });
+				const savedGames = await SavedGame.find({
+					username: req.user.username,
+				});
+
+				return res.status(StatusCodes.OK).json({ data: savedGames });
+			}
+
+			return res
+				.status(StatusCodes.UNAUTHORIZED)
+				.json({ error: "only owner is authorized to delete" });
+		}
+		return res
+			.status(StatusCodes.UNAUTHORIZED)
+			.json({ error: "login required for mongodb game save" });
 	} catch (error) {
 		console.log("Error:", error.message);
 		return res

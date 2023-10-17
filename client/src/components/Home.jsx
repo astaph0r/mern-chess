@@ -19,6 +19,8 @@ import {
 function Home({
 	firstPlayer,
 	room,
+	mongoSavedGames,
+	// handleMongoSavesChange,
 	handleRoomChange,
 	handleOrientationChange,
 	handlePlayersChange,
@@ -97,7 +99,7 @@ function Home({
 				<Typography.Title level={3}>Live Games</Typography.Title>
 				<Divider style={{ margin: 0 }} />
 				<div className="scrolling-wrapper-flexbox">
-					{liveGames? liveGames.map((room, idx) => (
+					{liveGames.map((room, idx) => (
 						<Card
 							className="card-scroll"
 							key={idx}
@@ -150,8 +152,15 @@ function Home({
 								}
 							/>
 						</Card>
-					)): <Typography.Text>No Ongoing Games</Typography.Text>}
+					))}
 				</div>
+				{liveGames.length !== 0 ? (
+					""
+				) : (
+					<Typography.Title level={5} type="secondary">
+						No Ongoing Games
+					</Typography.Title>
+				)}
 			</Col>
 			<Col span={24}>
 				<Typography.Title level={3}>Local Saves</Typography.Title>
@@ -171,18 +180,105 @@ function Home({
 									}}
 								/>
 							}
-							onClick={() => {
-								hashNavigate(`/single/${item}`);
-							}}
+							// onClick={() => {
+							// 	hashNavigate(`/single/${item}`);
+							// }}
 							hoverable
 						>
 							<Card.Meta
 								title={item}
-								description="www.instagram.com"
+								description={
+									<Row justify="center">
+										<Col>
+											<Space.Compact block>
+												<Button
+													onClick={() => {
+														hashNavigate(
+															`/single/${item}`
+														);
+													}}
+												>
+													<PlayCircleOutlined />
+													Resume
+												</Button>
+											</Space.Compact>
+										</Col>
+									</Row>
+								}
 							/>
 						</Card>
 					))}
 				</div>
+				{localGames.length !== 0 ? (
+					""
+				) : (
+					<Typography.Title level={5} type="secondary">
+						No Local Saved Games
+					</Typography.Title>
+				)}
+			</Col>
+
+			<Col span={24}>
+				<Typography.Title level={3}>MongoDB Saves</Typography.Title>
+				<Divider style={{ margin: 0 }} />
+				<div className="scrolling-wrapper-flexbox">
+					{mongoSavedGames.map((item, idx) => (
+						<Card
+							className="card-scroll"
+							key={idx}
+							style={{ width: 240 }}
+							cover={
+								<Chessboard
+									arePiecesDraggable={false}
+									position={item.fen}
+									customBoardStyle={{
+										borderRadius: "4px",
+									}}
+								/>
+							}
+							onClick={() => {
+								hashNavigate(`/single/${item.gameId}`);
+							}}
+							hoverable
+						>
+							<Card.Meta
+								title={item.gameId}
+								description={
+									<Row justify="center">
+										<Col>
+											<Space.Compact block>
+												<Button
+													onClick={() => {
+														hashNavigate(
+															`/single/${item.gameId}`
+														);
+													}}
+												>
+													<PlayCircleOutlined />
+													Resume
+												</Button>
+											</Space.Compact>
+										</Col>
+									</Row>
+								}
+							/>
+						</Card>
+					))}
+				</div>
+
+				{user ? (
+					mongoSavedGames.length !== 0 ? (
+						""
+					) : (
+						<Typography.Title level={5} type="secondary">
+							No MongoDB Saved Games
+						</Typography.Title>
+					)
+				) : (
+					<Typography.Title level={5} type="secondary">
+						Login to View MongoDB Saved Games
+					</Typography.Title>
+				)}
 			</Col>
 		</Row>
 	);
@@ -191,6 +287,8 @@ function Home({
 Home.propTypes = {
 	room: PropTypes.string,
 	firstPlayer: PropTypes.bool,
+	mongoSavedGames: PropTypes.array,
+	handleMongoSavesChange: PropTypes.func,
 	handleRoomChange: PropTypes.func,
 	handlePlayersChange: PropTypes.func,
 	handleOrientationChange: PropTypes.func,

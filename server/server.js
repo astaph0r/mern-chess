@@ -1,5 +1,6 @@
 // const { v4: uuidV4 } = require("uuid");
 const express = require("express");
+const path = require('path');
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const corsOptions = {

@@ -11,7 +11,7 @@ export const useLogout = () => {
 			// setError(null);
             console.log("joii")
 
-			const response = await fetch("http://localhost:3000/api/logout", {
+			const response = await fetch(`${import.meta.env.VITE_BACKEND_API}/logout`, {
 				method: "DELETE",
 				withCredentials: true,
 				credentials: "include",

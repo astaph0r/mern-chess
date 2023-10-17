@@ -1,4 +1,4 @@
-import { createContext, useReducer } from "react";
+import { createContext, useReducer, useEffect } from "react";
 import PropTypes from "prop-types";
 
 export const AuthContext = createContext();
@@ -19,6 +19,25 @@ function AuthContextProvider({ children }) {
 		user: null,
 	});
 	console.log("AuthContext: ", state);
+
+	useEffect(() => {
+		const fetchGetUser = async () => {
+			const response = await fetch(
+				`${import.meta.env.VITE_BACKEND_API}/getuser`,
+				{
+					withCredentials: true,
+					credentials: "include",
+				}
+			);
+			// hashNavigate(`/single/${newRoom}`);
+			const data = await response.json();
+			if (response.ok) {
+				dispatch({ type: "LOGIN", payload: data });
+			}
+		};
+		fetchGetUser();
+	}, []);
+
 	return (
 		<AuthContext.Provider value={{ ...state, dispatch }}>
 			{children}

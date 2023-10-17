@@ -1,0 +1,13 @@
+{
+  "name": "mern-chess",
+  "version": "1.0.0",
+  "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
+  "main": "index.js",
+  "scripts": {
+    "build-client": "cd client && npm install && npm run build",
+    "start-server": "cd server && npm install && npm start",
+    "start": "npm run build-client && npm run start-server" 
+  },
+  "author": "",
+  "license": "ISC"
+}

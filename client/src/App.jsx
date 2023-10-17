@@ -10,6 +10,7 @@ import SingleGame from "./components/SingleGame";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import { useAuthContext } from "./hooks/useAuthContext";
+import ForwardAuthenticated from "./hoc/ForwardAuthenticated";
 
 function App() {
 	const [firstPlayer, setFirstPlayer] = useState(false);
@@ -29,7 +30,7 @@ function App() {
 			try {
 				if (user) {
 					const response = await fetch(
-						"http://localhost:3000/api/savedgame/all",
+						`${import.meta.env.VITE_BACKEND_API}/savegame/all`,
 						{
 							withCredentials: true,
 							credentials: "include",
@@ -114,10 +115,14 @@ function App() {
 			<div className="App">
 				<Router hook={useHashLocation}>
 					<Route path="/register">
-						<Register />
+						<ForwardAuthenticated>
+							<Register />
+						</ForwardAuthenticated>
 					</Route>
 					<Route path="/login">
-						<Login />
+						<ForwardAuthenticated>
+							<Login />
+						</ForwardAuthenticated>
 					</Route>
 					<Route path="/">
 						<BaseLayout handleThemeChange={handleThemeChange}>

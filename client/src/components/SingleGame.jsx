@@ -88,7 +88,7 @@ const SingleGame = ({ mongoSavedGames, handleMongoSavesChange }) => {
 	const fetchSaveMongo = async () => {
 		try {
 			const response = await fetch(
-				`http://localhost:3000/api/savegame/${params.gameId}`,
+				`${import.meta.env.VITE_BACKEND_API}/savegame/${params.gameId}`,
 				{
 					withCredentials: true,
 					credentials: "include",
@@ -126,7 +126,7 @@ const SingleGame = ({ mongoSavedGames, handleMongoSavesChange }) => {
 	const fetchDeleteMongo = async (gameId) => {
 		try {
 			const response = await fetch(
-				`http://localhost:3000/api/savegame/${gameId}`,
+				`${import.meta.env.VITE_BACKEND_API}/savegame/${gameId}`,
 				{
 					withCredentials: true,
 					credentials: "include",
@@ -352,7 +352,7 @@ const SingleGame = ({ mongoSavedGames, handleMongoSavesChange }) => {
 							<Card bordered={false}>
 								<Statistic
 									title="Status"
-									value={game.inCheck()? "Check" : "Active"}
+									value={over? "Game Over" : game.inCheck()? "Check" : "Active"}
 									valueStyle={{ color: "#3f8600" }}
 									// prefix={<ArrowUpOutlined />}
 								/>

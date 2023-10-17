@@ -20,12 +20,12 @@ import {
 	// Space,
 	Button,
 	Typography,
-	// theme,
+	theme,
 } from "antd";
 
 import {
 	// DeleteOutlined,
-	ArrowUpOutlined,
+	// ArrowUpOutlined,
 	// ArrowDownOutlined,
 	ShareAltOutlined,
 	EyeOutlined,
@@ -57,6 +57,7 @@ function LiveGame({
 	// eslint-disable-next-line no-unused-vars
 	const [moveSquares, setMoveSquares] = useState({});
 	const [optionSquares, setOptionSquares] = useState({});
+	const { token } = theme.useToken();
 
 	const [playMatch, playParams] = useRoute("/game/play/:gameId");
 	const [viewMatch, viewParams] = useRoute("/game/view/:gameId");
@@ -91,7 +92,10 @@ function LiveGame({
 						username: user ? user.username : null,
 					},
 					(r) => {
-						if (r.error) return console.log(r.message);
+						if (r.error) {
+							setOver(r.message);
+							return console.log(r.message);
+						}
 						console.log("response:", r);
 						handleRoomChange(r.roomId);
 						handlePlayersChange(r.players);
@@ -102,25 +106,28 @@ function LiveGame({
 		}
 		if (viewMatch && !room && !over) {
 			// if (!room) {
-				socket.emit(
-					"joinViewRoom",
-					{
-						roomId: gameId,
-						username: user ? user.username : null,
-					},
-					(r) => {
-						if (r.error) return console.log(r.message);
-						console.log("response:", r);
-						if (r.fen) {
-							console.log("hi2");
-							game.load(r.fen);
-							setFen(game.fen());
-							// makeAMove(r.lastMove)
-						}
-						handleRoomChange(r.viewId);
-						handlePlayersChange(r.players);
+			socket.emit(
+				"joinViewRoom",
+				{
+					roomId: gameId,
+					username: user ? user.username : null,
+				},
+				(r) => {
+					if (r.error) {
+						setOver(r.message);
+						return console.log(r.message);
 					}
-				);
+					console.log("response:", r);
+					if (r.fen) {
+						console.log("hi2");
+						game.load(r.fen);
+						setFen(game.fen());
+						// makeAMove(r.lastMove)
+					}
+					handleRoomChange(r.viewId);
+					handlePlayersChange(r.players);
+				}
+			);
 			// }
 		}
 		handleFirstPlayerChange(false);
@@ -128,8 +135,20 @@ function LiveGame({
 		// return () => {
 		// 	socket.off("new-chat-message");
 		// };
-	
-	}, [firstPlayer, game, handleFirstPlayerChange, handleOrientationChange, handlePlayersChange, handleRoomChange, playMatch, room, user, viewMatch, gameId, over]);
+	}, [
+		firstPlayer,
+		game,
+		handleFirstPlayerChange,
+		handleOrientationChange,
+		handlePlayersChange,
+		handleRoomChange,
+		playMatch,
+		room,
+		user,
+		viewMatch,
+		gameId,
+		over,
+	]);
 
 	useEffect(() => {
 		socket.on("opponentJoined", ({ roomData }) => {
@@ -140,22 +159,26 @@ function LiveGame({
 
 	useEffect(() => {
 		socket.on("playerDisconnected", ({ player }) => {
-			console.log("playerDisconnected")
-			setOver(`${player.username} has disconnected.`);
+			console.log("playerDisconnected");
+			setOver(
+				`${
+					player.username ? player.username : player.id
+				} has disconnected.`
+			);
 			handleCleanup();
 		});
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	useEffect(() => {
 		socket.on("closeRoom", ({ player }) => {
-			console.log("closeRoom")
+			console.log("closeRoom");
 			setOver(
 				`${player.username ? player.username : player.id} has quit.`
 			);
 			handleCleanup();
 		});
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	useEffect(() => {
@@ -388,11 +411,16 @@ function LiveGame({
 													? "Check"
 													: "Active"
 												: "Waiting for Opponent to join"
-											: `Game Over! ${over}`
+											: over
 									}
-									precision={2}
+									// precision={2}
 									valueStyle={{
-										color: over ? "#cf1322" : "#3f8600",
+										color: over
+											? "#cf1322"
+											: players.length !== 2 ||
+											game.inCheck()
+											? token.colorWarningText
+											: "#3f8600",
 									}}
 								/>
 							</Card>
@@ -410,9 +438,24 @@ function LiveGame({
 							<Card bordered={false}>
 								<Statistic
 									title="Status"
-									value={"Active"}
-									valueStyle={{ color: "#3f8600" }}
-									prefix={<ArrowUpOutlined />}
+									value={
+										over
+											? "Game Over"
+											: players.length === 2
+											? game.inCheck()
+												? "Check"
+												: "Active"
+											: "Waiting"
+									}
+									valueStyle={{
+										color: over
+											? "#cf1322"
+											: players.length !== 2 ||
+											game.inCheck()
+											? token.colorWarningText
+											: "#3f8600",
+									}}
+									// prefix={<ArrowUpOutlined />}
 								/>
 							</Card>
 						</Col>
@@ -432,7 +475,9 @@ function LiveGame({
 									value={
 										game.turn() === "w" ? "White" : "Black"
 									}
-									valueStyle={{ color: "#cf1322" }}
+									valueStyle={{
+										color: token.colorPrimaryText,
+									}}
 									prefix={
 										game.turn() === "w" ? (
 											<img src={white} height={24} />
@@ -539,25 +584,27 @@ function LiveGame({
 			>
 				<>
 					<div style={boardWrapper}>
-						<Chessboard
-							id="ClickToMove"
-							animationDuration={200}
-							boardOrientation={orientation}
-							arePiecesDraggable={false}
-							position={fen}
-							onSquareClick={onSquareClick}
-							onPromotionPieceSelect={onPromotionPieceSelect}
-							customBoardStyle={{
-								borderRadius: "4px",
-								boxShadow: "0 2px 10px rgba(0, 0, 0, 0.5)",
-							}}
-							customSquareStyles={{
-								...moveSquares,
-								...optionSquares,
-							}}
-							promotionToSquare={moveTo}
-							showPromotionDialog={showPromotionDialog}
-						/>
+						{room && (
+							<Chessboard
+								id="ClickToMove"
+								animationDuration={200}
+								boardOrientation={orientation}
+								arePiecesDraggable={false}
+								position={fen}
+								onSquareClick={onSquareClick}
+								onPromotionPieceSelect={onPromotionPieceSelect}
+								customBoardStyle={{
+									borderRadius: "4px",
+									boxShadow: "0 2px 10px rgba(0, 0, 0, 0.5)",
+								}}
+								customSquareStyles={{
+									...moveSquares,
+									...optionSquares,
+								}}
+								promotionToSquare={moveTo}
+								showPromotionDialog={showPromotionDialog}
+							/>
+						)}
 					</div>
 				</>
 			</Col>

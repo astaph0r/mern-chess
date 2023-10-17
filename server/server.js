@@ -71,6 +71,16 @@ app.use(passport.session());
 
 app.use("/api", routes);
 
+
+
+if (process.env.NODE_ENV === "prod") {
+	app.use(express.static(path.join(__dirname, "../client/build")));
+  
+	app.get("*", (req, res) => {
+	  res.sendFile(path.resolve(__dirname, "../client", "build", "index.html"));
+	});
+  }
+
 // const rooms = new Map();
 
 // io.on("connection", (socket) => {

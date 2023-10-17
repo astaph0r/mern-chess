@@ -1,5 +1,5 @@
 {
-  "name": "client",
+  "name": "mern-chess-client",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,10 +11,6 @@
   },
   "dependencies": {
     "@ant-design/icons": "^5.2.6",
-    "@emotion/react": "^11.11.1",
-    "@emotion/styled": "^11.11.0",
-    "@mui/icons-material": "^5.14.12",
-    "@mui/material": "^5.14.12",
     "antd": "^5.9.4",
     "chess.js": "1.0.0-beta.6",
     "prop-types": "^15.8.1",

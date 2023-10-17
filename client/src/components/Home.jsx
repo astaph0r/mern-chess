@@ -80,7 +80,7 @@ function Home({
 						type="primary"
 						onClick={async () => {
 							const response = await fetch(
-								"http://localhost:3000/api/getuser",
+								`${import.meta.env.VITE_BACKEND_API}/getuser`,
 								{
 									withCredentials: true,
 									credentials: "include",

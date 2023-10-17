@@ -13,7 +13,7 @@ const socketServer = (server) => {
 	io.on("connection", (socket) => {
 		console.log(socket.id, "connected");
 
-		socket.on("createRoom", async (args ,callback) => {
+		socket.on("createRoom", async (args, callback) => {
 			try {
 				const roomId = uuidV4();
 				const viewId = uuidV4();
@@ -22,9 +22,7 @@ const socketServer = (server) => {
 					roomId,
 					viewId,
 					// fen: null,
-					players: [
-						{ id: socket.id, username: args?.username },
-					],
+					players: [{ id: socket.id, username: args?.username }],
 				});
 				callback(rooms.get(roomId));
 			} catch (error) {
@@ -45,8 +43,9 @@ const socketServer = (server) => {
 					room.players.filter((e) => e.id === socket.id).length > 0
 				) {
 					// console.log(room.players.filter((e) => e.id === socket.id))
-					error = true;
-					message = "already a player";
+					callback(room);
+					// error = true;
+					// message = "already a player";
 				} else if (room.players.length >= 2) {
 					error = true;
 					message = "room is full";
@@ -77,8 +76,12 @@ const socketServer = (server) => {
 
 				// console.log(roomUpdate)
 				callback(roomUpdate);
-				socket.to(room.roomId).emit("opponentJoined", {roomData: roomUpdate});
-				socket.to(room.viewId).emit("opponentJoined", {roomData: roomUpdate});
+				socket
+					.to(room.roomId)
+					.emit("opponentJoined", { roomData: roomUpdate });
+				socket
+					.to(room.viewId)
+					.emit("opponentJoined", { roomData: roomUpdate });
 			} catch (error) {
 				console.log(error);
 			}
@@ -136,13 +139,12 @@ const socketServer = (server) => {
 			}
 		});
 
-		socket.on("updateFen", ({roomId, fen}) => {
+		socket.on("updateFen", ({ roomId, fen }) => {
 			try {
-
 				// console.log("fenupdate");
 				// console.log(roomId);
 				const gameRooms = Array.from(rooms.values());
-				
+
 				const room = rooms.get(roomId);
 				// console.log(room.players);
 				const roomUpdate = {
@@ -173,8 +175,8 @@ const socketServer = (server) => {
 				// };
 				// rooms.set(room.roomId, roomUpdate);
 				// console.log(roomUpdate);
-				socket.to(room.roomId).emit("move", {move: data.move});
-				socket.to(room.viewId).emit("move", {move: data.move});
+				socket.to(room.roomId).emit("move", { move: data.move });
+				socket.to(room.viewId).emit("move", { move: data.move });
 			} catch (error) {
 				console.log(error);
 			}
@@ -184,7 +186,7 @@ const socketServer = (server) => {
 			try {
 				// console.log("closeRoom");
 				const room = rooms.get(data.roomId);
-								const player = room.players.find(
+				const player = room.players.find(
 					(player) => player.id === socket.id
 				);
 				// console.log(room.roomId)
@@ -224,18 +226,14 @@ const socketServer = (server) => {
 						(player) => player.id === socket.id
 					);
 					if (player) {
-						socket
-							.to(room.roomId)
-							.emit("playerDisconnected", {
-								roomId: room.viewId,
-								player: player,
-							}); // <- 4
-						socket
-							.to(room.viewId)
-							.emit("playerDisconnected", {
-								roomId: room.viewId,
-								player: player,
-							});
+						socket.to(room.roomId).emit("playerDisconnected", {
+							roomId: room.viewId,
+							player: player,
+						}); // <- 4
+						socket.to(room.viewId).emit("playerDisconnected", {
+							roomId: room.viewId,
+							player: player,
+						});
 
 						const playSockets = await io
 							.in(room.roomId)

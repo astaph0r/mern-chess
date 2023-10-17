@@ -180,7 +180,7 @@ router.get("/getUser", (req, res) => {
 	}
 });
 
-router.get("/savedgame/all", async (req, res) => {
+router.get("/savegame/all", async (req, res) => {
 	try {
 		if (req.isAuthenticated()) {
 			const savedGames = await SavedGame.find({
@@ -207,7 +207,7 @@ router.get("/savedgame/all", async (req, res) => {
 	}
 });
 
-router.get("/savedgame/:gameId", async (req, res) => {
+router.get("/savegame/:gameId", async (req, res) => {
 	try {
 		if (req.isAuthenticated()) {
 			const savedGame = await SavedGame.findOne({
@@ -236,14 +236,18 @@ router.post("/savegame/:gameId", async (req, res) => {
 		if (req.isAuthenticated()) {
 			const { gameId, fen } = req.body;
 			const username = req.user.username;
-			const newSavedGame = new SavedGame({
-				gameId,
-				fen,
-				username,
-			});
+			const alreadyExists = SavedGame.findOne({ gameId });
+			if (alreadyExists) {
+				await SavedGame.findOneAndUpdate({ gameId }, { fen });
+			} else {
+				const newSavedGame = new SavedGame({
+					gameId,
+					fen,
+					username,
+				});
 
-			await newSavedGame.save();
-
+				await newSavedGame.save();
+			}
 			const savedGames = await SavedGame.find({
 				username: req.user.username,
 			});

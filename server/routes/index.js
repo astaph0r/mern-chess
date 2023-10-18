@@ -134,10 +134,10 @@ router.post(
 
 router.delete("/logout", (req, res, next) => {
 	try {
-		console.log(req.isAuthenticated());
-		console.log(req.user);
+		// console.log(req.isAuthenticated());
+		// console.log(req.user);
 		if (!req.isAuthenticated()) {
-			console.log("failed");
+			// console.log("failed");
 			return res
 				.status(StatusCodes.UNAUTHORIZED)
 				.json({ error: "logout failed." });
@@ -148,7 +148,7 @@ router.delete("/logout", (req, res, next) => {
 			res.clearCookie("connect.sid");
 			// Don't redirect, just print text
 
-			console.log("logout");
+			// console.log("logout");
 			return res.status(StatusCodes.OK).json({
 				message: "Logout Successful.",
 			});
@@ -232,7 +232,7 @@ router.get("/savegame/:gameId", async (req, res) => {
 
 router.post("/savegame/:gameId", async (req, res) => {
 	try {
-		console.log(req.user);
+		// console.log(req.user);
 		if (req.isAuthenticated()) {
 			const { gameId, fen } = req.body;
 			const username = req.user.username;
@@ -267,7 +267,7 @@ router.post("/savegame/:gameId", async (req, res) => {
 
 router.delete("/savegame/:gameId", async (req, res) => {
 	try {
-		console.log(req.user);
+		// console.log(req.user);
 		if (req.isAuthenticated()) {
 			const savedGame = await SavedGame.findOne({
 				gameId: req.params.gameId,

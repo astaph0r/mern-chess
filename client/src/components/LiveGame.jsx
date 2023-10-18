@@ -12,7 +12,7 @@ import black from "../assets/black.png";
 import {
 	Statistic,
 	Card,
-	// Tag,
+	Tag,
 	// Grid,
 	Col,
 	Row,
@@ -60,8 +60,8 @@ function LiveGame({
 	const [optionSquares, setOptionSquares] = useState({});
 	const { token } = theme.useToken();
 
-	const [playMatch, playParams] = useRoute("/game/play/:gameId");
-	const [viewMatch, viewParams] = useRoute("/game/view/:gameId");
+	const [playMatch, playParams] = useRoute("/live/play/:gameId");
+	const [viewMatch, viewParams] = useRoute("/live/view/:gameId");
 	const gameId = playMatch
 		? playParams.gameId
 		: viewMatch
@@ -84,7 +84,7 @@ function LiveGame({
 
 		// console.log(firstPlayer);
 		if (!firstPlayer && playMatch) {
-			console.log("check", room);
+			// console.log("check", room);
 			if (!room && !over) {
 				socket.emit(
 					"joinPlayRoom",
@@ -97,7 +97,7 @@ function LiveGame({
 							setOver(r.message);
 							return console.log(r.message);
 						}
-						console.log("response:", r);
+						// console.log("response:", r);
 						handleRoomChange(r.roomId);
 						handlePlayersChange(r.players);
 						handleOrientationChange("black");
@@ -153,7 +153,7 @@ function LiveGame({
 
 	useEffect(() => {
 		socket.on("opponentJoined", ({ roomData }) => {
-			console.log("roomData", roomData);
+			// console.log("roomData", roomData);
 			handlePlayersChange(roomData.players);
 		});
 	}, [handlePlayersChange]);
@@ -396,7 +396,7 @@ function LiveGame({
 						>
 							<Card bordered={false}>
 								<Statistic
-									title={`Game Status [Multiplayer]: ${
+									title={`Game [Multiplayer]: ${
 										playMatch ? "Play Mode" : "View Mode"
 									}`}
 									value={
@@ -408,9 +408,7 @@ function LiveGame({
 
 										!over
 											? players.length === 2
-												? game.inCheck()
-													? "Check"
-													: "Active"
+												? "---"
 												: "Waiting for Opponent to join"
 											: over
 									}
@@ -584,6 +582,12 @@ function LiveGame({
 				}}
 			>
 				<>
+					<Row gutter={[16, 16]}>
+						<Col span={24} type="flex" align="middle">
+							{user && <Tag color="blue">username: {user.username}</Tag>}
+							{viewMatch && <Tag color="orange">View Mode</Tag>}
+						</Col>
+					</Row>
 					<div style={boardWrapper}>
 						{room ? (
 							<Chessboard
@@ -610,7 +614,6 @@ function LiveGame({
 								status="403"
 								title="403"
 								subTitle="Sorry, you are not authorized to access this page."
-								
 							/>
 						)}
 					</div>

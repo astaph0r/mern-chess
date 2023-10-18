@@ -21,10 +21,10 @@ function App() {
 	const { user } = useAuthContext();
 	const [mongoSavedGames, setMongoSavedGames] = useState([]);
 
-	useEffect(() => {
-		console.log("Something changed room state");
-		console.log(room);
-	}, [room]);
+	// useEffect(() => {
+	// 	console.log("Something changed room state");
+	// 	console.log(room);
+	// }, [room]);
 
 	useEffect(() => {
 		const fetchMongoGames = async () => {
@@ -40,7 +40,7 @@ function App() {
 					const data = await response.json();
 					if (response.ok) {
 						if (data.data) {
-							setMongoSavedGames(data.data);
+							return setMongoSavedGames(data.data);
 						}
 						console.log(data.message);
 						// return hashNavigate("/");
@@ -159,7 +159,7 @@ function App() {
 								/>
 							</BaseLayout>
 						</Route>
-						<Route path="/game/:mode/:gameId">
+						<Route path="/live/:mode/:gameId">
 							<BaseLayout handleThemeChange={handleThemeChange}>
 								<LiveGame
 									room={room}

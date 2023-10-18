@@ -9,7 +9,7 @@ export const useLogout = () => {
 		try {
 			// setIsLoading(true);
 			// setError(null);
-            console.log("joii")
+            // console.log("joii")
 
 			const response = await fetch(`${import.meta.env.VITE_BACKEND_API}/logout`, {
 				method: "DELETE",
@@ -24,7 +24,7 @@ export const useLogout = () => {
 				// }),
 			});
 			const data = await response.json();
-			console.log(response);
+			// console.log(response);
 			if (response.ok) {
 				// setIsLoading(false);
 				console.log(data.message);

@@ -3,7 +3,7 @@ import useHashLocation from "../hooks/useHashLocation";
 import { useAuthContext } from "../hooks/useAuthContext";
 import socket from "./socket-client";
 import PropTypes from "prop-types";
-import { Card, Row, Col, Space, Button, Typography, Divider } from "antd";
+import { Card, Row, Col, Space, Button, Typography, Divider, Tag } from "antd";
 import { Chessboard } from "react-chessboard";
 import { v4 } from "uuid";
 import { Chess } from "chess.js";
@@ -32,23 +32,34 @@ function Home({
 	const localGames = Object.keys(localStorage);
 	useEffect(() => {
 		if (firstPlayer) {
-			hashNavigate(`/game/play/${room}`);
+			hashNavigate(`/live/play/${room}`);
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [room]);
 
 	useEffect(() => {
-		console.log("hi");
-		socket.emit("getLiveGames", (liveGames) => {
-			console.log(liveGames);
+		// console.log("hi");
+		socket.on("setLiveGames", ({ liveGames }) => {
+			// console.log(liveGames);
+			setLiveGames(liveGames);
+		});
+	}, []);
+	
+	useEffect(() => {
+		// console.log("hi");
+		socket.emit("getLiveGames", ({ liveGames }) => {
+			// console.log(liveGames);
 			setLiveGames(liveGames);
 		});
 	}, []);
 
 	return (
 		<Row align="middle" justify="center" gutter={[16, 16]}>
+			<Col span={24} type="flex" align="middle">
+				{user && <Tag color="blue">username: {user.username}</Tag>}
+			</Col>
 			<Col type="flex" align="middle" span={24}>
-				<Space style={{ marginTop: 24 }} wrap>
+				<Space.Compact style={{ marginTop: 24 }}>
 					<Button
 						type="primary"
 						onClick={() => {
@@ -56,7 +67,7 @@ function Home({
 								"createRoom",
 								{ username: user ? user.username : null },
 								(room) => {
-									console.log(room);
+									// console.log(room);
 									handleRoomChange(room.roomId);
 									handleOrientationChange("white");
 									handlePlayersChange(room.players);
@@ -65,7 +76,7 @@ function Home({
 							);
 						}}
 					>
-						Start New Multiplayer
+						Start Multiplayer
 					</Button>
 					<Button
 						type="primary"
@@ -74,9 +85,9 @@ function Home({
 							hashNavigate(`/single/${newRoom}`);
 						}}
 					>
-						Start New Single
+						Start Singleplayer
 					</Button>
-					<Button
+					{/* <Button
 						type="primary"
 						onClick={async () => {
 							const response = await fetch(
@@ -92,8 +103,8 @@ function Home({
 						}}
 					>
 						Get User
-					</Button>
-				</Space>
+					</Button> */}
+				</Space.Compact>
 			</Col>
 			<Col span={24}>
 				<Typography.Title level={3}>Live Games</Typography.Title>
@@ -126,7 +137,7 @@ function Home({
 												<Button
 													onClick={() => {
 														hashNavigate(
-															`/game/view/${room.roomId}`
+															`/live/view/${room.roomId}`
 														);
 													}}
 												>
@@ -139,7 +150,7 @@ function Home({
 													}
 													onClick={() => {
 														hashNavigate(
-															`/game/play/${room.roomId}`
+															`/live/play/${room.roomId}`
 														);
 													}}
 												>

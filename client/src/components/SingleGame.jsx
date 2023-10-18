@@ -11,7 +11,7 @@ import black from "../assets/black.png";
 import {
 	Statistic,
 	Card,
-	// Tag,
+	Tag,
 	// Grid,
 	Col,
 	Row,
@@ -510,6 +510,11 @@ const SingleGame = ({ mongoSavedGames, handleMongoSavesChange }) => {
 				}}
 			>
 				<>
+				<Row gutter={[16, 16]}>
+						<Col span={24} type="flex" align="middle">
+							{user && <Tag color="blue">username: {user.username}</Tag>}
+						</Col>
+					</Row>
 					<div style={boardWrapper}>
 						{/* {window.location.origin} */}
 						<Chessboard

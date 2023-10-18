@@ -13,6 +13,8 @@ const socketServer = (server) => {
 	io.on("connection", (socket) => {
 		console.log(socket.id, "connected");
 
+		io.emit("setLiveGames", { liveGames: Array.from(rooms.values()) });
+
 		socket.on("createRoom", async (args, callback) => {
 			try {
 				const roomId = uuidV4();
@@ -23,6 +25,9 @@ const socketServer = (server) => {
 					viewId,
 					// fen: null,
 					players: [{ id: socket.id, username: args?.username }],
+				});
+				io.emit("setLiveGames", {
+					liveGames: Array.from(rooms.values()),
 				});
 				callback(rooms.get(roomId));
 			} catch (error) {
@@ -75,8 +80,11 @@ const socketServer = (server) => {
 
 				rooms.set(args.roomId, roomUpdate);
 
-				console.log(roomUpdate)
+				// console.log(roomUpdate)
 				callback(roomUpdate);
+				io.emit("setLiveGames", {
+					liveGames: Array.from(rooms.values()),
+				});
 				socket
 					.to(room.roomId)
 					.emit("opponentJoined", { roomData: roomUpdate });
@@ -121,16 +129,16 @@ const socketServer = (server) => {
 		socket.on("getLiveGames", (callback) => {
 			try {
 				// console.log("getlivegames");
-				const gameRooms = Array.from(rooms.values());
+				// const gameRooms = Array.from(rooms.values());
 
-				const liveGames = gameRooms;
+				const liveGames = Array.from(rooms.values());
 				// .filter((room) => {
 				// 	if (room.players.length === 1) {
 				// 		return room.roomId;
 				// 	}
 				// });
 				// console.log(liveGames);
-				callback(liveGames);
+				callback({ liveGames });
 				// socket.to(room.roomId).emit("move", { move: data.move });
 				// socket
 				// 	.to(room.viewId)
@@ -187,31 +195,36 @@ const socketServer = (server) => {
 			try {
 				// console.log("closeRoom");
 				const room = rooms.get(data.roomId);
-				const player = room.players.find(
-					(player) => player.id === socket.id
-				);
-				// console.log(room.roomId)
-				socket.to(room.roomId).emit("closeRoom", {
-					roomId: room.roomId,
-					player: player,
-				});
-				socket.to(room.viewId).emit("closeRoom", {
-					roomId: room.viewId,
-					player: player,
-				});
+				if (room) {
+					const player = room.players.find(
+						(player) => player.id === socket.id
+					);
+					// console.log(room.roomId)
+					socket.to(room.roomId).emit("closeRoom", {
+						roomId: room.roomId,
+						player: player,
+					});
+					socket.to(room.viewId).emit("closeRoom", {
+						roomId: room.viewId,
+						player: player,
+					});
 
-				const playSockets = await io.in(room.roomId).fetchSockets();
-				const viewSockets = await io.in(room.viewId).fetchSockets();
+					const playSockets = await io.in(room.roomId).fetchSockets();
+					const viewSockets = await io.in(room.viewId).fetchSockets();
 
-				playSockets.forEach((s) => {
-					s.leave(room.roomId);
-				});
+					playSockets.forEach((s) => {
+						s.leave(room.roomId);
+					});
 
-				viewSockets.forEach((s) => {
-					s.leave(room.viewId);
-				});
+					viewSockets.forEach((s) => {
+						s.leave(room.viewId);
+					});
 
-				rooms.delete(room.roomId);
+					rooms.delete(room.roomId);
+					io.emit("setLiveGames", {
+						liveGames: Array.from(rooms.values()),
+					});
+				}
 			} catch (error) {
 				console.log(error);
 			}
@@ -252,6 +265,9 @@ const socketServer = (server) => {
 						});
 
 						rooms.delete(room.roomId);
+						io.emit("setLiveGames", {
+							liveGames: Array.from(rooms.values()),
+						});
 					}
 				});
 			} catch (error) {

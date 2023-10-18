@@ -24,7 +24,7 @@ export const useLogin = () => {
 				}),
 			});
 			const data = await response.json();
-			console.log(response);
+			// console.log(response);
 			if (response.ok) {
 				setIsLoading(false);
 				console.log("set user in context here");

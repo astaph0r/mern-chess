@@ -1,5 +1,15 @@
 import PropTypes from "prop-types";
-import { Layout, Divider, Menu, Button, Grid, Row, Col, Space, theme } from "antd";
+import {
+	Layout,
+	Divider,
+	Menu,
+	Button,
+	Grid,
+	Row,
+	Col,
+	Space,
+	// theme
+} from "antd";
 import {
 	MenuFoldOutlined,
 	MenuUnfoldOutlined,
@@ -16,7 +26,7 @@ import useHashLocation from "../hooks/useHashLocation";
 import { useLogout } from "../hooks/useLogout";
 
 function BaseLayout({ children, handleThemeChange }) {
-	const {token} = theme.useToken();
+	// const {token} = theme.useToken();
 	const [, hashNavigate] = useHashLocation();
 	const [collapsed, setCollapsed] = useState(true);
 	const [logout] = useLogout();
@@ -77,6 +87,7 @@ function BaseLayout({ children, handleThemeChange }) {
 								}
 								onClick={() => setCollapsed(!collapsed)}
 								style={{
+									color: "#f8f9fa",
 									display: !screens.xs || user ? "none" : "",
 									padding: "7px 0",
 									// fontSize: "16px",
@@ -112,7 +123,7 @@ function BaseLayout({ children, handleThemeChange }) {
 								icon={<LogoutOutlined />}
 								// ghost
 								style={{
-									color: token.colorBgBase,
+									color: "#f8f9fa",
 									display: !user ? "none" : "",
 									width: 64,
 									height: 64,

@@ -44,6 +44,7 @@ const socketServer = (server) => {
 				) {
 					// console.log(room.players.filter((e) => e.id === socket.id))
 					callback(room);
+					return;
 					// error = true;
 					// message = "already a player";
 				} else if (room.players.length >= 2) {
@@ -74,7 +75,7 @@ const socketServer = (server) => {
 
 				rooms.set(args.roomId, roomUpdate);
 
-				// console.log(roomUpdate)
+				console.log(roomUpdate)
 				callback(roomUpdate);
 				socket
 					.to(room.roomId)

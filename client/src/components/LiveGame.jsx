@@ -20,6 +20,7 @@ import {
 	// Space,
 	Button,
 	Typography,
+	Result,
 	theme,
 } from "antd";
 
@@ -584,7 +585,7 @@ function LiveGame({
 			>
 				<>
 					<div style={boardWrapper}>
-						{room && (
+						{room ? (
 							<Chessboard
 								id="ClickToMove"
 								animationDuration={200}
@@ -603,6 +604,13 @@ function LiveGame({
 								}}
 								promotionToSquare={moveTo}
 								showPromotionDialog={showPromotionDialog}
+							/>
+						) : (
+							<Result
+								status="403"
+								title="403"
+								subTitle="Sorry, you are not authorized to access this page."
+								
 							/>
 						)}
 					</div>

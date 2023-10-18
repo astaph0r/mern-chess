@@ -2,7 +2,7 @@ import "./App.css";
 import LiveGame from "./components/LiveGame";
 import Home from "./components/Home";
 import BaseLayout from "./components/BaseLayout";
-import { Router, Route } from "wouter";
+import { Router, Route, Switch } from "wouter";
 import useHashLocation from "./hooks/useHashLocation";
 import { ConfigProvider, theme } from "antd";
 import { useState, useCallback, useEffect } from "react";
@@ -11,6 +11,7 @@ import Login from "./components/Login";
 import Register from "./components/Register";
 import { useAuthContext } from "./hooks/useAuthContext";
 import ForwardAuthenticated from "./hoc/ForwardAuthenticated";
+import NotFound from "./components/NotFound";
 
 function App() {
 	const [firstPlayer, setFirstPlayer] = useState(false);
@@ -114,64 +115,75 @@ function App() {
 		>
 			<div className="App">
 				<Router hook={useHashLocation}>
-					<Route path="/register">
-						<ForwardAuthenticated>
-							<Register />
-						</ForwardAuthenticated>
-					</Route>
-					<Route path="/login">
-						<ForwardAuthenticated>
-							<Login />
-						</ForwardAuthenticated>
-					</Route>
-					<Route path="/">
-						<BaseLayout handleThemeChange={handleThemeChange}>
-							<Home
-								room={room}
-								players={players}
-								orientation={orientation}
-								firstPlayer={firstPlayer}
-								handleRoomChange={handleRoomChange}
-								handlePlayersChange={handlePlayersChange}
-								handleOrientationChange={
-									handleOrientationChange
-								}
-								handleFirstPlayerChange={
-									handleFirstPlayerChange
-								}
-								handleCleanup={handleCleanup}
-								mongoSavedGames={mongoSavedGames}
-								handleMongoSavesChange={handleMongoSavesChange}
-							/>
-						</BaseLayout>
-					</Route>
-					<Route path="/single/:gameId">
-						<BaseLayout handleThemeChange={handleThemeChange}>
-							<SingleGame
-								mongoSavedGames={mongoSavedGames}
-								handleMongoSavesChange={handleMongoSavesChange}
-							/>
-						</BaseLayout>
-					</Route>
-					<Route path="/game/:mode/:gameId">
-						<BaseLayout handleThemeChange={handleThemeChange}>
-							<LiveGame
-								room={room}
-								players={players}
-								orientation={orientation}
-								firstPlayer={firstPlayer}
-								handleRoomChange={handleRoomChange}
-								handlePlayersChange={handlePlayersChange}
-								handleOrientationChange={
-									handleOrientationChange
-								}
-								handleFirstPlayerChange={
-									handleFirstPlayerChange
-								}
-								handleCleanup={handleCleanup}
-							/>
-						</BaseLayout>
-					</Route>
+					<Switch>
+						<Route path="/register">
+							<ForwardAuthenticated>
+								<Register />
+							</ForwardAuthenticated>
+						</Route>
+						<Route path="/login">
+							<ForwardAuthenticated>
+								<Login />
+							</ForwardAuthenticated>
+						</Route>
+						<Route path="/">
+							<BaseLayout handleThemeChange={handleThemeChange}>
+								<Home
+									room={room}
+									players={players}
+									orientation={orientation}
+									firstPlayer={firstPlayer}
+									handleRoomChange={handleRoomChange}
+									handlePlayersChange={handlePlayersChange}
+									handleOrientationChange={
+										handleOrientationChange
+									}
+									handleFirstPlayerChange={
+										handleFirstPlayerChange
+									}
+									handleCleanup={handleCleanup}
+									mongoSavedGames={mongoSavedGames}
+									handleMongoSavesChange={
+										handleMongoSavesChange
+									}
+								/>
+							</BaseLayout>
+						</Route>
+						<Route path="/single/:gameId">
+							<BaseLayout handleThemeChange={handleThemeChange}>
+								<SingleGame
+									mongoSavedGames={mongoSavedGames}
+									handleMongoSavesChange={
+										handleMongoSavesChange
+									}
+								/>
+							</BaseLayout>
+						</Route>
+						<Route path="/game/:mode/:gameId">
+							<BaseLayout handleThemeChange={handleThemeChange}>
+								<LiveGame
+									room={room}
+									players={players}
+									orientation={orientation}
+									firstPlayer={firstPlayer}
+									handleRoomChange={handleRoomChange}
+									handlePlayersChange={handlePlayersChange}
+									handleOrientationChange={
+										handleOrientationChange
+									}
+									handleFirstPlayerChange={
+										handleFirstPlayerChange
+									}
+									handleCleanup={handleCleanup}
+								/>
+							</BaseLayout>
+						</Route>
+						<Route>
+							<BaseLayout handleThemeChange={handleThemeChange}>
+								<NotFound />
+							</BaseLayout>
+						</Route>
+					</Switch>
 				</Router>
 			</div>
 		</ConfigProvider>

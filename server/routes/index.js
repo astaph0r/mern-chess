@@ -236,7 +236,7 @@ router.post("/savegame/:gameId", async (req, res) => {
 		if (req.isAuthenticated()) {
 			const { gameId, fen } = req.body;
 			const username = req.user.username;
-			const alreadyExists = SavedGame.findOne({ gameId });
+			const alreadyExists = await SavedGame.findOne({ gameId });
 			if (alreadyExists) {
 				await SavedGame.findOneAndUpdate({ gameId }, { fen });
 			} else {
